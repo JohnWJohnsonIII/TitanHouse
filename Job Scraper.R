@@ -1,3 +1,6 @@
+###################################################
+#####CHECK FILE PATHS BEFORE PROCEEDING######
+
 
 ####comparing indeed listings for positions with
 ####Title containing "Vice President" "President" or "Chief"
@@ -20,6 +23,7 @@ library(rvest)
 library(stringr)
 library(purrr)
 library(xml2)
+library(plyr)
 library(dplyr)
 library(tm)
 library(twitteR)
@@ -52,7 +56,7 @@ for (i in 2:nrow(page.links)) { #starts at 2 because one of the URLs is captured
   g = g+1
 }
 
-View(allURLS)
+#View(allURLS)
 #View(allURLS)  #check your results from URL pasting loop
 
 #scraping the first page of results
@@ -61,50 +65,50 @@ title <- wurl %>%
   html_nodes(".jobtitle") %>%
   html_text(trim=TRUE) %>% 
   replace(!nzchar(.), NA)
-title <- as.data.frame(as.character(title))
+title <- as.data.frame(title)
 #print(title)
 
 company <- wurl %>% 
   html_nodes(".company") %>%
   html_text(trim=TRUE) %>% 
   replace(!nzchar(.), NA)
-company <- as.data.frame(as.character(company))
+company <- as.data.frame(company)
 #print(company)
 
 location <- wurl %>% 
   html_nodes(".location") %>%
   html_text(trim=TRUE) %>% 
   replace(!nzchar(.), NA)
-location <- as.data.frame(as.character(location))
+location <- as.data.frame(location)
 #print(location)
 
 
 ###loop scrapes through each subsequent URL 
 ###and writes results to data frames
 for (i in 1:nrow(allURLS)) {
-  title2 <- read_html(allURLS[i,]) %>% 
+  x2 <- read_html(allURLS[i,]) %>% 
     html_nodes(".jobtitle") %>%
     html_text(trim=TRUE) %>% 
     replace(!nzchar(.), NA)
-  title2 <- as.data.frame(as.character(title2))
+  x2 <- as.data.frame(x2)
   #print(title)
   
-  company2 <- read_html(allURLS[i,]) %>% 
+  y2 <- read_html(allURLS[i,]) %>% 
     html_nodes(".company") %>%
     html_text(trim=TRUE) %>% 
     replace(!nzchar(.), NA)
-  company2 <- as.data.frame(as.character(company2))
+  y2 <- as.data.frame(y2)
   #print(company)
   
-  location2 <- read_html(allURLS[i,]) %>% 
+  z2 <- read_html(allURLS[i,]) %>% 
     html_nodes(".location") %>%
     html_text(trim=TRUE) %>% 
     replace(!nzchar(.), NA)
-  location2 <- as.data.frame(as.character(location2))
-  
-  title <- rbind.fill(title, title2)
-  company <- rbind.fill(company, company2)
-  location <- rbind.fill(location, location2)
+  z2 <- as.data.frame(z2)
+
+  title <- rbind.fill(title, x2)
+  company <- rbind.fill(company, y2)
+  location <- rbind.fill(location, z2)
 }
 
 ###at this point all data points from all listings should be compiled
@@ -113,14 +117,14 @@ for (i in 1:nrow(allURLS)) {
 #write results to a single dataframe
 jobs <- data.frame(title, company, location)
 
+
 View(jobs)
 
 
 ####compare companies in jobs df to TH-tracked companies list
 
 #read tracked companies list
-trackedco <- read.csv("C:/Users/John Johnson/Documents/TitanHouse/TH Data/TH tracked co's .csv", header = TRUE)
-trackedco <- as.character(trackedco)
+trackedco <- read.csv("C:/Users/John/Desktop/TH tracked co's .csv", header = TRUE)
 #View(head(trackedco))
 
 #create data frame to hold comparison results
@@ -130,12 +134,6 @@ THJobs <- data.frame(Title=character(),
                      stringsAsFactors = FALSE)
 colnames(THJobs) <- c("Title", "Company", "Location")
 
-#convert variable types to character
-###commented out because added to loops
-#jobs$title <- as.character(jobs$title)
-#jobs$company <- as.character(jobs$company)
-#jobs$location <- as.character(jobs$location)
-#trackedco$Name <- as.character(trackedco$Name)
 
 #clean datasets that are being compared
 #removing common items from company names that may or may not be included in
@@ -162,14 +160,14 @@ for (i in 1:nrow(jobs)) { #for each company in jobs
     if (gsub("[\r\n]", "", jobs[i,2]) #if the company in jobs matches...
         %in% trackedco[j,1]) { #...company in trackedco
       THJobs[k,] <- rbind(c(gsub("[\r\n]", "", jobs[i,1]), #write info from jobs to new report THJobs
-                        gsub("[\r\n]", "", jobs[i,2]), 
-                        gsub("[\r\n]", "", jobs[i,3])))
+                            gsub("[\r\n]", "", jobs[i,2]), 
+                            gsub("[\r\n]", "", jobs[i,3])))
       k = k+1
     }
   }
 }
+
 View(THJobs)
 
 #export THJobs
-write.csv(THJobs, file = "C:/Users/John Johnson/Desktop/THJobs.csv")
-
+write.csv(THJobs, file = "C:/Users/John/Desktop/THJobs.csv")
