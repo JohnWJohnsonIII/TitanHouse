@@ -32,14 +32,16 @@ library(devtools)
 library(httr)
 
 #job search URL
-wurl <- read_html("https://www.indeed.com/jobs?as_and=&as_phr=&as_any=&as_not=&as_ttl=%22Vice+President%22+or+%22President%22+or+%22Chief%22&as_cmp=&jt=fulltime&st=&salary=&radius=25&l=&fromage=15&limit=50&sort=date&psf=advsrch")
+wurl <- "https://www.indeed.com/jobs?as_and=&as_phr=&as_any=&as_not=&as_ttl=President+OR+%22Chief+Executive+Officer%22+OR+%22Chief+Financial+Officer%22+OR+%22Chief+Operating+Officer%22+OR+%22Chief+Human+Resource+Officer%22+OR+%22Chief+Technology+Officer%22+OR+%22General+Counsel%22&as_cmp=&jt=fulltime&st=&salary=&radius=25&l=&fromage=15&limit=50&sort=date&psf=advsrch"
+wurl_html <- read_html(wurl)
 
 #grabs all results links available from first page of results (first 1K jobs)
-page.links <- wurl %>%
+page.links <- wurl_html %>%
   html_nodes(xpath = '//div[contains(@class,"pagination")]//a') %>%
   html_attr('href')
 page.links <- as.data.frame(page.links)
 
+#base url for creating full URLs from page.links results
 baseURL <- "http://www.indeed.com"
 
 
@@ -47,87 +49,69 @@ baseURL <- "http://www.indeed.com"
 allURLS <- data.frame(FullURL=character(),
                       stringsAsFactors = FALSE)
 colnames(allURLS) <- c("FullURL")
+allURLS[1,1] <- wurl #add first page of results to allURLS df
 
-#loop appends baseURL to page.links
-g=1 #set counter for rows in page.links
+#loop appends baseURL to page.links results and adds results to allURLS
+g=2 #set counter for rows in page.links
 for (i in 2:nrow(page.links)) { #starts at 2 because one of the URLs is captured twice in page.links
   next_URL <- paste(baseURL, page.links[i,], sep="")
   allURLS[g,] <- next_URL
   g = g+1
 }
 
-#View(allURLS)
 #View(allURLS)  #check your results from URL pasting loop
 
-#scraping the first page of results
-#and establishing df's to hold results
-title <- wurl %>% 
-  html_nodes(".jobtitle") %>%
-  html_text(trim=TRUE) %>% 
-  replace(!nzchar(.), NA)
-title <- c(title)
-#print(title)
 
-company <- wurl %>% 
-  html_nodes(".company") %>%
-  html_text(trim=TRUE) %>% 
-  replace(!nzchar(.), NA)
-company <- c(company)
-#print(company)
+#create df to catch results of upcoming loop
+jobs <- data.frame(title = character(),
+                   company = character(),
+                   location = character(),
+                   stringsAsFactors = FALSE)
 
-location <- wurl %>% 
-  html_nodes(".location") %>%
-  html_text(trim=TRUE) %>% 
-  replace(!nzchar(.), NA)
-location <- c(location)
-#print(location)
-
-
-###loop scrapes through each subsequent URL 
-###and writes results to data frames
+###loop scrapes through each URL 
+###and writes results to vectors
 for (i in 1:nrow(allURLS)) {
-  title2 <- read_html(allURLS[i,]) %>% 
+  
+  title <- read_html(allURLS[i,]) %>% 
     html_nodes(".jobtitle") %>%
     html_text(trim=TRUE) %>% 
     replace(!nzchar(.), NA)
-  title2 <- c(title2)
-  #print(title)
+  title <- c(title)
+
   
-  company2 <- read_html(allURLS[i,]) %>% 
+  company <- read_html(allURLS[i,]) %>% 
     html_nodes(".company") %>%
     html_text(trim=TRUE) %>% 
     replace(!nzchar(.), NA)
-  company2 <- c(company2)
-  #print(company)
+  ompany <- c(company)
+
   
-  location2 <- read_html(allURLS[i,]) %>% 
+  location <- read_html(allURLS[i,]) %>% 
     html_nodes(".location") %>%
     html_text(trim=TRUE) %>% 
     replace(!nzchar(.), NA)
-  location2 <- c(location2)
+  location <- c(location)
 
   
-  title <- append(title, title2)
-  company <- append(company, company2)
-  location <- append(location, location2)
-
-  Sys.sleep(5) #pause 5 seconds before next iteration
+  scrape1 <- cbind(title, company, location)
+  
+  jobs <-rbind(jobs, scrape1)
+  
+  title = NULL
+  company = NULL
+  location = NULL
+  
+  Sys.sleep(3) #pause 3 secs before next iteration
 }
 
-###at this point all data points from all listings should be compiled
-###into the title, company, and location df's
 
-#write results to a single dataframe
-jobs <- data.frame(title, company, location)
+View(jobs) #view scraper loop results
 
 
-View(jobs)
-
-
-####compare companies in jobs df to TH-tracked companies list
+###compare companies in jobs df to TH-tracked companies list
 
 #read tracked companies list
-trackedco <- read.csv("C:/Users/John/Desktop/TH tracked co's .csv", header = TRUE)
+trackedco <- read.csv("C:/Users/John Johnson/Documents/TitanHouse/TH Data/TH tracked co's .csv", header = TRUE)
 #View(head(trackedco))
 
 #create data frame to hold comparison results
@@ -161,7 +145,7 @@ k=1 #set counter for rows in THJobs
 for (i in 1:nrow(jobs)) { #for each company in jobs
   for (j in 1:nrow(trackedco)){ #for each company in trackedco
     if (gsub("[\r\n]", "", jobs[i,2]) #if the company in jobs matches...
-        %in% trackedco[j,1]) { #...company in trackedco
+        %in% trackedco[j,1]) { #...company in trackedco...
       THJobs[k,] <- rbind(c(gsub("[\r\n]", "", jobs[i,1]), #write info from jobs to new report THJobs
                             gsub("[\r\n]", "", jobs[i,2]), 
                             gsub("[\r\n]", "", jobs[i,3])))
@@ -173,4 +157,4 @@ for (i in 1:nrow(jobs)) { #for each company in jobs
 View(THJobs)
 
 #export THJobs
-write.csv(THJobs, file = "C:/Users/John/Desktop/THJobs.csv")
+write.csv(THJobs, file = "C:/Users/John Johnson/Desktop/THJobs.csv")
