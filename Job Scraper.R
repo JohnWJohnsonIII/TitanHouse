@@ -65,50 +65,53 @@ title <- wurl %>%
   html_nodes(".jobtitle") %>%
   html_text(trim=TRUE) %>% 
   replace(!nzchar(.), NA)
-title <- as.data.frame(title)
+title <- c(title)
 #print(title)
 
 company <- wurl %>% 
   html_nodes(".company") %>%
   html_text(trim=TRUE) %>% 
   replace(!nzchar(.), NA)
-company <- as.data.frame(company)
+company <- c(company)
 #print(company)
 
 location <- wurl %>% 
   html_nodes(".location") %>%
   html_text(trim=TRUE) %>% 
   replace(!nzchar(.), NA)
-location <- as.data.frame(location)
+location <- c(location)
 #print(location)
 
 
 ###loop scrapes through each subsequent URL 
 ###and writes results to data frames
 for (i in 1:nrow(allURLS)) {
-  x2 <- read_html(allURLS[i,]) %>% 
+  title2 <- read_html(allURLS[i,]) %>% 
     html_nodes(".jobtitle") %>%
     html_text(trim=TRUE) %>% 
     replace(!nzchar(.), NA)
-  x2 <- as.data.frame(x2)
+  title2 <- c(title2)
   #print(title)
   
-  y2 <- read_html(allURLS[i,]) %>% 
+  company2 <- read_html(allURLS[i,]) %>% 
     html_nodes(".company") %>%
     html_text(trim=TRUE) %>% 
     replace(!nzchar(.), NA)
-  y2 <- as.data.frame(y2)
+  company2 <- c(company2)
   #print(company)
   
-  z2 <- read_html(allURLS[i,]) %>% 
+  location2 <- read_html(allURLS[i,]) %>% 
     html_nodes(".location") %>%
     html_text(trim=TRUE) %>% 
     replace(!nzchar(.), NA)
-  z2 <- as.data.frame(z2)
+  location2 <- c(location2)
 
-  title <- rbind.fill(title, x2)
-  company <- rbind.fill(company, y2)
-  location <- rbind.fill(location, z2)
+  
+  title <- append(title, title2)
+  company <- append(company, company2)
+  location <- append(location, location2)
+
+  Sys.sleep(5) #pause 5 seconds before next iteration
 }
 
 ###at this point all data points from all listings should be compiled
