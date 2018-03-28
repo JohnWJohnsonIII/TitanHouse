@@ -1,0 +1,65 @@
+###TitanHouse KPI Display Project###  last updated: 3/28 at 13:10 by John J. 
+"""Goal: This Raspberry Pi will be connected to the TV in the research room.
+    It will connect to our workflow management documents currently hosted in
+    Google Sheets and will display current and historical research team
+    performance information.
+
+    It should update regularly (every 20-30 mins) so that the team is able to track their performance in
+    (roughly) real-time.
+"""
+
+###Target Data to Be Displayed###
+
+###SPRINT 1###
+###TH KPI's By Task###
+"""List-Build                   | Projected Team Performance this wk vs last week
+    Team Performance Today      | Top Performer #
+    Team Performance Yesterday  | Top Performer #
+    Team Performance This Week  | Top Performer #
+    Team Performance Last Week  | Top Performer #"""
+
+"""Company and Firm Build       | Projected Team Performance this wk vs last week
+    Team Performance Today      | Top Performer #
+    Team Performance Yesterday  | Top Performer #
+    Team Performance This Week  | Top Performer #
+    Team Performance Last Week  | Top Performer #"""
+
+"""Publishing                   | Projected Team Performance this wk vs last week
+    Team Performance Today      | Top Performer #
+    Team Performance Yesterday  | Top Performer #
+    Team Performance This Week  | Top Performer #
+    Team Performance Last Week  | Top Performer #"""
+
+"""Freelancers                  | Projected Team Performance this wk vs last week
+    Team Performance Today      | Top Performer #
+    Team Performance Yesterday  | Top Performer #
+    Team Performance This Week  | Top Performer #
+    Team Performance Last Week  | Top Performer #"""
+
+###SPRINT 2###
+"""Split screen"""
+###Rotating Visualizations###
+"""Relative Productivity By Task (bivariate regressions)
+    List-Build last Week | List-Build This Week
+    Company and Firm Build last Week | Company and Firm Build this Week
+    Publishing last Week | Publishing this Week"""
+
+"""Gross Productivity Historically (line graphs)
+    Weekly gross numbers by task
+         List-Build
+         Company and Firm Build
+         Publishing
+         Freelancers"""
+
+###SPRINT 3###
+"""Ability to post messages/alerts from TH leadership"""
+
+###SPRINT 4###
+"""Using the bottom 10 or 15% of the screen integrate
+    Weather for Bethesda, MD
+    WMATA arrivals/departures for Buses and Trains
+    Traffic Alerts"""
+
+###SPRINT 5###
+"""News Ticker at very bottom of screen?"""
+
