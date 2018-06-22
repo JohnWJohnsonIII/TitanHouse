@@ -1,0 +1,64 @@
+#call required packages
+require(stats)
+
+#read data you want to crunch
+dat <- read.csv("C:/Users/John Johnson/Desktop/rev est dat.csv")
+
+#inspect data frame
+#View(dat)
+
+#ensure numeric variables are of appropriate type (numeric)
+#ensure Industry.Classifications are of appropriate type (factors)
+#str(dat)
+
+#Create Vector of Industries you are running
+ind <- c(levels(dat$Industry.Classifications))
+
+#erase observations w/ employee count greater than 10k
+dat <- dat[!dat$Number.of.Employees...Global..Latest.>10000,]
+
+#create additional columns for rev estimates and error measurements in data frame
+dat$Est_Rev <- NA
+dat$Error <- NA
+
+#Table for each industry's Average Rev/Emp and Avg Error of Estimates
+ind_res <- data.frame("Industry"=character(),
+                      "Avg Rev/Emp(MM)"=numeric(),
+                      "Avg Error(MM)"=numeric(),
+                      stringsAsFactors = FALSE)
+
+#estimate master avg for each industry, estimate revenue, measure error
+for (i in 1:length(ind)) {
+  ind_res[i,1] <- ind[i]
+  dat2 <- dat[dat$Industry.Classifications == ind[i],]
+  x1 <- dat2[dat2$Number.of.Employees...Global..Latest. < 501,]
+  x2 <- dat2[dat2$Number.of.Employees...Global..Latest. > 501 & dat2$Number.of.Employees...Global..Latest. < 2501,]
+  x3 <- dat2[dat2$Number.of.Employees...Global..Latest. > 2500 & dat2$Number.of.Employees...Global..Latest. < 10000,]
+
+  x1avg <- mean(x1$Revenues..Latest.Annual....USDmm..Historical.rate.)/mean(x1$Number.of.Employees...Global..Latest.)
+  x2avg <- mean(x2$Revenues..Latest.Annual....USDmm..Historical.rate.)/mean(x2$Number.of.Employees...Global..Latest.)
+  x3avg <- mean(x3$Revenues..Latest.Annual....USDmm..Historical.rate.)/mean(x3$Number.of.Employees...Global..Latest.)
+  
+  master_avg <- mean(c(x1avg, x2avg, x3avg))
+  ind_res[i,2] <- round(master_avg,2)
+  
+  dat$Est_Rev[dat$Industry.Classifications == ind[i]] <- round(dat$Number.of.Employees...Global..Latest.[dat$Industry.Classifications == ind[i]] * master_avg,2)
+  dat$Error[dat$Industry.Classifications == ind[i]] <- round(dat$Est_Rev[dat$Industry.Classifications == ind[i]] - dat$Revenues..Latest.Annual....USDmm..Historical.rate.[dat$Industry.Classifications == ind[i]],2)
+  
+  err <- mean(dat$Error[dat$Industry.Classifications == ind[i]])
+  ind_res[i,3] <- round(err,2)
+}
+#View(dat)
+View(ind_res)
+
+too_high <- c()
+
+for (i in 1:nrow(ind_res)){
+  if (abs(ind_res$Avg.Error.MM.[i]) > 100){
+    too_high <- ind_res$Industry[i]
+  }
+}
+
+if(length(too_high) > 0) {
+  print(paste("The following industry error rates are too high:", too_high))
+}
