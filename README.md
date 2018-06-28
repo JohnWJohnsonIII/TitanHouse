@@ -1,4 +1,6 @@
 # TitanHouse
-job comparison tool -- comparing job listings with TH-tracked co's.
+various projects built to support TH efforts. 
 
-email parser -- separating emails for email services and bounce testing.
+parsing columns to support email bounce testing
+scraping jobs and comparing them with target orgs
+DF subsetting by variables and factors b/t variables then analyzing and writing results to a new df.
