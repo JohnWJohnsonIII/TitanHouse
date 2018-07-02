@@ -2,14 +2,14 @@
 require(stats)
 
 #read data you want to crunch
-dat <- read.csv("C:/Users/John Johnson/Desktop/rev est dat.csv")
+dat <- read.csv("C:/Users/John Johnson/Desktop/Ind Level Data.csv")
 
 #inspect data frame
 #View(dat)
 
 #ensure numeric variables are of appropriate type (numeric)
 #ensure Industry.Classifications are of appropriate type (factors)
-#str(dat)
+str(dat)
 
 #Create Vector of Industries you are running
 ind <- c(levels(dat$Industry.Classifications))
@@ -17,48 +17,84 @@ ind <- c(levels(dat$Industry.Classifications))
 #erase observations w/ employee count greater than 10k
 dat <- dat[!dat$Number.of.Employees...Global..Latest.>10000,]
 
-#create additional columns for rev estimates and error measurements in data frame
+#create additional columns for rev estimates,error measurements, and absolut error measurements in data frame
 dat$Est_Rev <- NA
 dat$Error <- NA
+dat$Abs_Avg_Err <- NA
 
 #Table for each industry's Average Rev/Emp and Avg Error of Estimates
 ind_res <- data.frame("Industry"=character(),
+                      "N Companies"=numeric(),
                       "Avg Rev/Emp(MM)"=numeric(),
                       "Avg Error(MM)"=numeric(),
+                      "Abs Avg Error(MM)"=numeric(),
                       stringsAsFactors = FALSE)
 
 #estimate master avg for each industry, estimate revenue, measure error
 for (i in 1:length(ind)) {
+  
+  #write industry name to results db
   ind_res[i,1] <- ind[i]
+  
+  #create new df with industry's data
   dat2 <- dat[dat$Industry.Classifications == ind[i],]
+  
+  #count number of rows in industry's data (dat2)
+  ind_res[i,2] <- nrow(dat2)
+  
+  #subset industry's data by employee count
   x1 <- dat2[dat2$Number.of.Employees...Global..Latest. < 501,]
-  x2 <- dat2[dat2$Number.of.Employees...Global..Latest. > 501 & dat2$Number.of.Employees...Global..Latest. < 2501,]
+  x2 <- dat2[dat2$Number.of.Employees...Global..Latest. > 500 & dat2$Number.of.Employees...Global..Latest. < 2501,]
   x3 <- dat2[dat2$Number.of.Employees...Global..Latest. > 2500 & dat2$Number.of.Employees...Global..Latest. < 10000,]
 
-  x1avg <- mean(x1$Revenues..Latest.Annual....USDmm..Historical.rate.)/mean(x1$Number.of.Employees...Global..Latest.)
-  x2avg <- mean(x2$Revenues..Latest.Annual....USDmm..Historical.rate.)/mean(x2$Number.of.Employees...Global..Latest.)
-  x3avg <- mean(x3$Revenues..Latest.Annual....USDmm..Historical.rate.)/mean(x3$Number.of.Employees...Global..Latest.)
+  #calculate each employee count subset's average revenue per employee
+  x1avg <- mean(x1$Total.Revenue..Latest.Annual....USDmm..Historical.rate.)/mean(x1$Number.of.Employees...Global..Latest.)
+  x2avg <- mean(x2$Total.Revenue..Latest.Annual....USDmm..Historical.rate.)/mean(x2$Number.of.Employees...Global..Latest.)
+  x3avg <- mean(x3$Total.Revenue..Latest.Annual....USDmm..Historical.rate.)/mean(x3$Number.of.Employees...Global..Latest.)
   
+  #average the averages of the subsets' revenue per employee
   master_avg <- mean(c(x1avg, x2avg, x3avg))
-  ind_res[i,2] <- round(master_avg,2)
   
+  #write the industry's average of averages (master_avg) to the results df
+  ind_res[i,3] <- round(master_avg,2)
+  
+  #estimate revenue for each co in the industry using the master_avg calculated above
   dat$Est_Rev[dat$Industry.Classifications == ind[i]] <- round(dat$Number.of.Employees...Global..Latest.[dat$Industry.Classifications == ind[i]] * master_avg,2)
-  dat$Error[dat$Industry.Classifications == ind[i]] <- round(dat$Est_Rev[dat$Industry.Classifications == ind[i]] - dat$Revenues..Latest.Annual....USDmm..Historical.rate.[dat$Industry.Classifications == ind[i]],2)
   
+  #calculate the error for each company's revenue prediction
+  dat$Error[dat$Industry.Classifications == ind[i]] <- round(dat$Est_Rev[dat$Industry.Classifications == ind[i]] - dat$Total.Revenue..Latest.Annual....USDmm..Historical.rate.[dat$Industry.Classifications == ind[i]],2)
+  
+  #calculate the absolute value of the error for each company's revenue prediction
+  dat$Abs_Avg_Err[dat$Industry.Classifications == ind[i]] <- abs(dat$Error[dat$Industry.Classifications == ind[i]])
+  
+  #calculate the average error for the industry's revenue estimates
   err <- mean(dat$Error[dat$Industry.Classifications == ind[i]])
-  ind_res[i,3] <- round(err,2)
+  
+  #write the industry's average error to the results df
+  ind_res[i,4] <- round(err,2)
+  
+  #calculate the average absolute error for the industry's revenue estimates
+  abs_err <- mean(dat$Abs_Avg_Err[dat$Industry.Classifications == ind[i]])
+  
+  #write the industry's average absolute error to the results df
+  ind_res[i,5] <- round(abs_err,2)
 }
-#View(dat)
+View(dat)
+#show results df
 View(ind_res)
 
-too_high <- c()
+#write results to a csv
+#write.csv(ind_res, file="C:/Users/John Johnson/Desktop/Industry Level Rev Results.csv")
 
-for (i in 1:nrow(ind_res)){
-  if (abs(ind_res$Avg.Error.MM.[i]) > 100){
-    too_high <- ind_res$Industry[i]
-  }
-}
+#too_high <- c()
 
-if(length(too_high) > 0) {
-  print(paste("The following industry error rates are too high:", too_high))
-}
+#for (i in 1:nrow(ind_res)){
+#  if (abs(ind_res$Avg.Error.MM.[i]) > 100){
+#    too_high <- ind_res$Industry[i]
+#  }
+#}
+
+#if(length(too_high) > 0) {
+#  print(paste("The following industry error rates are too high:", too_high))
+#}
+#print(too_high)
