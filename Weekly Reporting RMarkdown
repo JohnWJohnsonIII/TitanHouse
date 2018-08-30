@@ -1,0 +1,105 @@
+---
+output:
+  word_document: default
+  html_document: default
+---
+```{r echo= FALSE} 
+
+library(ggplot2)
+library(knitr)
+library(scales)
+#import data
+
+##THIS IS MOST RECENT WEEK DATA
+w <- read.csv("C:/Users/John Johnson/Documents/TitanHouse/Operations Docs/Productivity/Weekly Productivity Numbers/Weekly Productivity Numbers 2018/productivity 8-27-18.csv", header = TRUE)
+list <- w[w$Role == "list",]
+listcosfirms <- w[w$Role == "list-cos+firms",]
+pub <- w[w$Role == "pub",]
+freepub <- w[w$Role == "free-pub",1:3]
+freelance <- w[w$Role == "freelance",1:3]
+
+##THIS IS PREVIOUS WEEK DATA
+lw <- read.csv("C:/Users/John Johnson/Documents/TitanHouse/Operations Docs/Productivity/Weekly Productivity Numbers/Weekly Productivity Numbers 2018/productivity 8-20-18.csv", header = TRUE)
+lw_list <- lw[lw$Role == "list",]
+lw_listcosfirms <- lw[lw$Role == "list-cos+firms",]
+lw_pub <- lw[lw$Role == "pub",]
+lw_freelance <- lw[lw$Role == "freelance",1:3]
+lw_freepub <- lw[lw$Role == "free-pub", 1:3]
+
+```
+
+## **Summary -- August 20-August 26,2018**
+
+The research team published `r sum(pub$Profiles) + sum(freepub$Profiles)` profiles last week. This is a net change of `r percent(((sum(pub$Profiles) + sum(freepub$Profiles)) - (sum(lw_pub$Profiles) + sum(lw_freepub$Profiles))) / (sum(lw_pub$Profiles) + sum(lw_freepub$Profiles)))` compared to the previous week.
+
+List Builders identified `r sum(w$Profiles[w$Role == "list"])` Titans last week. This is a change of `r percent((sum(w$Profiles[w$Role == "list"]) - sum(lw$Profiles[lw$Role == "list"]))/sum(lw$Profiles[lw$Role == "list"]))` compared to the previous week.
+
+
+
+### **Team Productivity by Task**
+  
+#### *List Building*
+List Builders averaged `r round(mean(w$P.Hr.[w$Role == "list"]), digits = 2)` per researcher per hour. This is a change of `r percent((mean(w$P.Hr.[w$Role == "list"]) - mean(lw$P.Hr.[lw$Role == "list"]))/mean(lw$P.Hr.[lw$Role == "list"]))` compared with the previous week.
+
+List Builders identified `r sum(w$Profiles[w$Role == "list"])` Titans last week. This is a change of `r percent((sum(w$Profiles[w$Role == "list"]) - sum(lw$Profiles[lw$Role == "list"]))/sum(lw$Profiles[lw$Role == "list"]))` compared to the previous week.
+
+```{r echo = FALSE, results = 'asis', fig.align = "center"}
+kable(list, caption = "List Building Productivity", row.names = FALSE, digits = 2)
+```
+
+```{r echo=FALSE, fig.align = "center"}
+cfs <- coef(lm(Profiles~Hours, data = list)) #line of fit formula as follows -- coef(lm(y~x, data = [dataset_name]))
+ggplot(list, aes(Hours,Profiles)) + geom_abline(intercept = cfs[1], slope = cfs[2]) + 
+  geom_text(aes(label = Person)) + labs(title="List-Building Productivity") + 
+  xlab("Hours") + ylab("Profiles") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+
+#### *Company and Firm Building*
+We collected Titans from `r sum(w$Profiles[w$Role == "list-cos+firms"])` firms and portfolio companies last week. A change of `r percent((sum(w$Profiles[w$Role == "list-cos+firms"])-sum(lw$Profiles[lw$Role == "list-cos+firms"]))/sum(lw$Profiles[lw$Role == "list-cos+firms"]))` compared to the previous week.
+
+Researchers explored an average of `r round(mean(w$P.Hr.[w$Role == "list-cos+firms"]), digits = 2)` entities per researcher per hour. This represents a change of `r percent((mean(w$P.Hr.[w$Role == "list-cos+firms"]) - mean(lw$P.Hr.[lw$Role == "list-cos+firms"]))/mean(lw$P.Hr.[lw$Role == "list-cos+firms"]))` versus the previous week.
+
+```{r echo = FALSE, results = 'asis', fig.align = "center"}
+kable(listcosfirms, caption = "Company and Firm Building Productivity", row.names = FALSE, digits = 2)
+```
+
+```{r echo = FALSE, fig.align = "center"}
+cfs <- coef(lm(Profiles~Hours, data = listcosfirms)) #line of fit formula as follows -- coef(lm(y~x, data = [dataset_name]))
+ggplot(listcosfirms, aes(Hours,Profiles)) + geom_abline(intercept = cfs[1], slope = cfs[2]) + 
+  geom_text(aes(label = Person)) + labs(title="Co & Firm Building Productivity") + 
+  xlab("Hours") + ylab("Profiles") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+#### *Publishing*
+Publishers deployed a total of `r sum(pub$Profiles) + sum(freepub$Profiles)` profiles last week. This is a net change of `r percent(((sum(pub$Profiles) + sum(freepub$Profiles)) - (sum(lw_pub$Profiles) + sum(lw_freepub$Profiles))) / (sum(lw_pub$Profiles) + sum(lw_freepub$Profiles)))` compared to the previous week.
+
+In-house publishers averaged `r round(mean(pub$P.Hr.),2)` profiles per researcher per hour last week. This is a change of `r percent((mean(pub$P.Hr.) - mean(lw_pub$P.Hr.)) / mean(lw_pub$P.Hr.))` versus last week.
+
+```{r echo = FALSE, results = 'asis', fig.align = "center"}
+kable(pub, caption = "Publishing Productivity", row.names = FALSE, digits = 2)
+```
+
+```{r echo = FALSE, fig.align = "center"}
+cfs <- coef(lm(Profiles~Hours, data = pub)) #line of fit formula as follows -- coef(lm(y~x, data = [dataset_name]))
+ggplot(pub, aes(Hours,Profiles)) + geom_abline(intercept = cfs[1], slope = cfs[2]) + 
+  geom_text(aes(label = Person)) + labs(title="Publishing Productivity") + 
+  xlab("Hours") + ylab("Profiles") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+#####Freelance Pub
+```{r echo = FALSE, results = 'asis', fig.align = "center"}
+kable(freepub, caption = "Freelance Publishing Productivity", row.names = FALSE, digits = 2)
+```
+
+
+#### *Freelancers*
+Freelancers submitted a total of `r sum(w$Profiles[w$Role == "freelance"])` profiles for review. This is a change of `r percent((sum(w$Profiles[w$Role == "freelance"]) - sum(lw$Profiles[lw$Role == "freelance"]))/sum(lw$Profiles[lw$Role == "freelance"]))` against the previous week.
+
+There were `r nrow(freelance)` active freelancers last week. A change of `r nrow(freelance) - nrow(lw_freelance)` compared to the preceding week.
+
+```{r echo = FALSE, results ='asis', fig.align = "center"}
+kable(freelance, caption = "Freelance Productivity", row.names = FALSE)
+```
